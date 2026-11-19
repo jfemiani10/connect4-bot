@@ -1,21 +1,24 @@
 # TODO — Connect Four Bot
 
-Target: about 3–5 hours each. See `CLAUDE.md` for the project description and the board convention.
+Target: about 3–5 hours each. See `README.md` for the project description, board convention, and bot interface.
 
 ## Both (do first, ~30 min)
-- [ ] Create the GitHub repo and add each other as collaborators.
-- [ ] Agree on the `Board` interface: `valid_moves()`, `play(col)`, `winner()`, `copy()`, and a `grid` attribute that follows the convention in `CLAUDE.md`.
+- [x] Create the GitHub repo.
+- [ ] Add Ryan as a collaborator.
+- [x] `Board` interface: `valid_moves()`, `play(col)`, `winner()`, `game_over()`, `copy()`, `grid`, `current_player` (see `src/board.py`).
+- [x] Bot interface: `name` and `choose_move(board)` (see `src/baselines.py`).
 - [x] Terminal board display (`src/display.py`).
 
 ## Jonah: the board and the AI (~3–4 hrs)
-- [ ] `src/board.py`: board state, dropping pieces, win/draw detection, and a few tests.
-- [ ] `play.py`: a human vs. bot game in the terminal that calls `print_board` after every move. Useful for demos and for checking the bot.
+- [x] `src/board.py`: board state, dropping pieces, win/draw detection, and tests in `tests/`.
+- [x] `src/baselines.py`: the random bot.
+- [x] `play.py`: a human vs. bot game in the terminal that calls `print_board` after every move. Currently plays the random bot; switch it to minimax once that exists.
 - [ ] `src/minimax.py`: depth-limited minimax with a heuristic (score 2- and 3-in-a-rows, prefer the center column).
 - [ ] Add alpha-beta pruning as an on/off flag, plus a counter for positions searched.
 - [ ] Paper: **AI Model and Implementation**, including which AI tools were used and how.
 
 ## Ryan: baselines and experiments (~3–4 hrs)
-- [ ] `src/baselines.py`: the random bot and the greedy bot.
+- [ ] `src/baselines.py`: the greedy bot (the random bot is already there; follow the same interface).
 - [ ] `experiments/run_matches.py`: play N games (e.g. 100) between any two bots, alternating who goes first, with fixed seeds. Save win/loss/draw, positions searched, and time per move to `results/*.csv`.
 - [ ] `experiments/plots.py`: make the figures:
   - win rate vs. depth (minimax against random and against greedy)
