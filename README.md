@@ -42,6 +42,7 @@ The board prints as dots for empty cells and colored `O`s for pieces (red for pl
 - `src/minimax.py`: the minimax bot (to do).
 - `tests/`: unit tests for the board.
 - `experiments/`: match and plotting scripts, which write to `results/` and `figures/` (to do).
+- `docs/paper_draft.md`: mock draft of the final paper, with a checklist of what is left.
 - `TODO.md`: the task split between teammates.
 
 **Board convention:** `grid` is 6 rows × 7 columns, with row 0 at the top. Cells hold `0` = empty, `1` = player 1, `2` = player 2.
