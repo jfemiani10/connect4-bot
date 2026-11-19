@@ -1,0 +1,273 @@
+% Mock draft of the final paper, laid out like the course's IEEE template
+% (project-template-letter.docx). Build the PDF from the docs/ folder with:
+%     pdflatex paper_draft.tex
+% Red text marks TODOs and [X] placeholders that must come from real results.
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[margin=0.75in,columnsep=0.25in]{geometry}
+\usepackage{mathptmx}          % Times font, like the IEEE template
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}           % \square for checklist boxes
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+% IEEE-style headings: I. INTRODUCTION, A. Subsection
+\renewcommand\thesection{\Roman{section}}
+\renewcommand\thesubsection{\Alph{subsection}}
+\titleformat{\section}{\centering\normalsize\scshape}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\itshape}{\thesubsection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.2ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1ex}{0.5ex}
+\captionsetup[table]{labelformat=simple,labelsep=newline,font={footnotesize,sc},
+  justification=centering}
+\renewcommand\thetable{\Roman{table}}
+\captionsetup[figure]{font=footnotesize,name=Fig.,labelsep=period}
+
+% Placeholders
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
+\newcommand{\X}{\textcolor{red}{[X]}}
+\newcommand{\figbox}[1]{\fbox{\parbox[c][0.95in][c]{0.92\columnwidth}{\centering
+  \textcolor{red}{\small Figure goes here:\\ \texttt{#1}}}}}
+
+\title{\Large Depth versus Strength: Evaluating Minimax with\\ Alpha-Beta Pruning in Connect Four\\[4pt]
+  \normalsize\textcolor{red}{MOCK DRAFT --- not for submission}}
+\author{
+  \begin{tabular}{c@{\hspace{3em}}c}
+  Jonah Femiani & Ryan \textcolor{red}{[surname]} \\
+  \textcolor{red}{[Department]} & \textcolor{red}{[Department]} \\
+  \textcolor{red}{[University]} & \textcolor{red}{[University]} \\
+  \textcolor{red}{[City, Country]} & \textcolor{red}{[City, Country]} \\
+  \textcolor{red}{[school email]} & \textcolor{red}{[school email]}
+  \end{tabular}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{\textit{Abstract}---Board games give a clear, measurable setting for
+testing how well a search-based agent can plan ahead. We built an agent for Connect Four
+that uses depth-limited minimax search with a heuristic evaluation function and optional
+alpha-beta pruning. We compared it against two baseline agents, one that plays randomly and
+one that greedily takes immediate wins and blocks immediate losses, at search depths from
+one to six moves. Across \X{} games per matchup, the minimax agent won \X{} percent of games
+against the random agent and \X{} percent against the greedy agent at depth \X{}. Alpha-beta
+pruning reduced the number of positions searched by \X{} percent at depth six without
+changing the moves chosen.} \todo{state the main takeaway; rewrite once results are in.
+No symbols, footnotes, or math in the title or abstract.}
+
+\medskip
+\noindent\textbf{\textit{Keywords}---game playing, adversarial search, minimax, alpha-beta
+pruning, Connect Four}
+
+\section{Introduction}
+
+Connect Four is a two-player game played on a board seven columns wide and six rows tall.
+Players take turns dropping pieces into a column, and the first to line up four pieces
+horizontally, vertically, or diagonally wins. The game is small enough to program in an
+afternoon but has far too many positions to solve by brute force during play, which makes it
+a standard setting for studying adversarial search~[1]. With perfect play, the first player
+can always force a win~[2], but finding those moves in real time takes search.
+
+Our goal was to measure how much a classic AI method, minimax search, improves play over
+simple strategies, and what that improvement costs in computation. Specifically, we asked:
+\begin{enumerate}[leftmargin=*,nosep]
+  \item How does the win rate of a minimax agent change as its search depth increases,
+        against a random opponent and against a greedy opponent?
+  \item How much does alpha-beta pruning~[3] reduce the number of positions searched and
+        the time per move?
+\end{enumerate}
+We implemented the game, two baseline agents, and a minimax agent in Python, then ran \X{}
+games per matchup with fixed random seeds. \todo{one or two sentences summarizing the main
+findings.}
+
+\section{Methodology}
+
+\subsection{Data and Preprocessing}
+
+This project does not use an external dataset. Instead, the data are the games played
+between agents. Each matchup between two agents consists of \X{} games. The agents alternate
+who moves first, because the first player has an advantage in Connect Four~[2]. Every game
+uses a fixed random seed, so any game can be replayed exactly by rerunning our scripts.
+
+For each move we record the agent, the search depth, the number of positions searched, and
+the time taken. For each game we record the winner, or a draw. There is no training step, so
+no train and test split is needed and there is no risk of data leakage. The minimax agent's
+evaluation function was designed by hand and was not tuned on the games we report.
+\todo{confirm the number of games and the seeds.}
+
+\subsection{AI Model and Implementation}
+
+\textit{Game representation.} The board is stored as a six-by-seven grid in which each cell
+is empty or holds one player's piece. After every move, the program checks only the lines
+passing through the newly placed piece, since a new win must include that piece.
+
+\textit{Baseline agents.} The \emph{random agent} chooses uniformly among the legal
+columns. The \emph{greedy agent} plays a winning move if one exists, otherwise blocks the
+opponent's immediate win if one exists, and otherwise plays randomly.
+
+\textit{Minimax agent.} Minimax~[1] explores the tree of possible future moves to a fixed
+depth. It assumes the agent picks the move with the highest score and the opponent picks the
+move with the lowest. Won and lost positions get very large positive or negative scores.
+Positions at the depth limit are scored by a heuristic evaluation function.
+\todo{Jonah: describe the final heuristic. The plan is to count the agent's open two- and
+three-in-a-rows minus the opponent's, plus a bonus for center-column pieces.}
+
+\textit{Alpha-beta pruning.} Alpha-beta pruning~[3] skips branches of the search tree that
+cannot affect the final decision. It always returns the same move as plain minimax but
+usually searches far fewer positions. Our implementation can switch pruning on or off, so
+the two versions can be compared directly. \todo{mention move ordering if used.}
+
+\textit{Tools.} The project is written in Python 3~[4]. The game and agents use only the
+standard library, and figures are made with Matplotlib~[5]. Code is available at
+\url{https://github.com/jfemiani10/connect4-bot}.
+
+\textit{Use of generative AI.} We used Claude Code (Anthropic) to help write the game board,
+terminal display, random agent, unit tests, and an early outline of this paper. We reviewed,
+tested, and edited all generated code and text. \todo{update to match what was actually used,
+following the course rules.}
+
+\subsection{Experimental Setup}
+
+We ran three experiments:
+\begin{enumerate}[leftmargin=*,nosep]
+  \item \emph{Win rate versus depth.} The minimax agent with alpha-beta pruning, at depths 1
+        through 6, played \X{} games against each baseline.
+  \item \emph{Baseline check.} The greedy agent played \X{} games against the random agent,
+        to confirm that it is the stronger baseline.
+  \item \emph{Cost of search.} At each depth, minimax with and without pruning was run on
+        the same positions, recording positions searched and time per move.
+\end{enumerate}
+
+\textit{Metrics.} \emph{Win rate} is the fraction of games won, with draws reported
+separately, and measures playing strength. \emph{Positions searched per move} counts the
+board positions evaluated before choosing a move; it measures computational effort and does
+not depend on hardware. \emph{Time per move} is the average number of seconds per move; it
+measures practical cost but depends on hardware.
+
+\textit{Hardware.} \todo{CPU model, RAM, operating system, and Python version used for the
+timing results.}
+
+\section{Experimental Results}
+
+\begin{table}[t]
+\caption{Win, draw, and loss rates (\%) of the minimax agent by search depth}
+\label{tab:winrates}
+\centering\footnotesize
+\begin{tabular}{ccc}
+\toprule
+Depth & vs.\ Random (W / D / L) & vs.\ Greedy (W / D / L) \\
+\midrule
+1 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+2 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+3 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+4 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+5 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+6 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering\figbox{figures/win\_rate\_vs\_depth.png}
+\caption{Win rate (\%) of the minimax agent versus search depth, against the random and
+greedy agents.}
+\label{fig:winrate}
+\end{figure}
+
+\begin{figure}[t]
+\centering\figbox{figures/positions\_vs\_depth.png}
+\caption{Average positions searched per move versus search depth, with and without
+alpha-beta pruning (log scale).}
+\label{fig:positions}
+\end{figure}
+
+\begin{figure}[t]
+\centering\figbox{figures/time\_vs\_depth.png}
+\caption{Average time per move (s) versus search depth, with and without alpha-beta
+pruning.}
+\label{fig:time}
+\end{figure}
+
+Table~\ref{tab:winrates} and Fig.~\ref{fig:winrate} show the minimax agent's results against
+both baselines. Fig.~\ref{fig:positions} and Fig.~\ref{fig:time} show the cost of search
+with and without pruning. The greedy agent won \X{}\% of its games against the random agent.
+
+\todo{Ryan: two or three paragraphs discussing the results. At what depth does minimax start
+reliably beating each baseline? How fast do positions searched grow with depth, and how much
+does pruning cut that growth? Does time per move follow the same pattern? Explain anything
+unexpected, such as draws or losses at low depth.}
+
+\section{Conclusion}
+
+We built a Connect Four agent based on minimax search with alpha-beta pruning and compared
+it with random and greedy baselines. \todo{main result about win rate versus depth; main
+result about the savings from pruning. No claims not supported earlier.}
+
+\textit{Limitations.} We only compared against weak, hand-written opponents, not strong or
+human players. The evaluation function was designed by hand and was not tuned. Timing results
+depend on our hardware and on Python's speed.
+
+\textit{Next steps.} Possible extensions include testing against a perfect-play solver,
+adding move ordering or a transposition table to search deeper, and comparing against a
+different method such as Monte Carlo Tree Search.
+
+\section*{References}
+\todo{keep only sources we actually read; check every detail.}
+\begin{enumerate}[label={[\arabic*]},leftmargin=*,itemsep=2pt,font=\footnotesize]
+\footnotesize
+\item S. Russell and P. Norvig, \textit{Artificial Intelligence: A Modern Approach}, 4th ed.
+  Hoboken, NJ: Pearson, 2020.
+\item L. V. Allis, ``A knowledge-based approach of Connect-Four: The game is solved: White
+  wins,'' M.S. thesis, Vrije Universiteit, Amsterdam, The Netherlands, 1988.
+\item D. E. Knuth and R. W. Moore, ``An analysis of alpha-beta pruning,'' \textit{Artificial
+  Intelligence}, vol. 6, no. 4, pp. 293--326, 1975, doi: 10.1016/0004-3702(75)90019-3.
+\item Python Software Foundation, ``Python 3 documentation.'' [Online]. Available:
+  \url{https://docs.python.org/3/}
+\item J. D. Hunter, ``Matplotlib: A 2D graphics environment,'' \textit{Computing in Science
+  \& Engineering}, vol. 9, no. 3, pp. 90--95, 2007, doi: 10.1109/MCSE.2007.55.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------
+\onecolumn
+\section*{Checklist: What's Left Before Submission}
+\newcommand{\task}{\item[$\square$]}
+
+\subsection*{Code and experiments (see TODO.md for who does what)}
+\begin{itemize}[nosep]
+  \task Greedy bot (Ryan).
+  \task Minimax bot with heuristic, alpha-beta on/off flag, and a positions-searched counter (Jonah).
+  \task \texttt{experiments/run\_matches.py} writing to \texttt{results/*.csv} (Ryan).
+  \task \texttt{experiments/plots.py} producing Figs.~1--3 in \texttt{figures/} (Ryan).
+  \task Run all experiments and record the hardware used.
+\end{itemize}
+
+\subsection*{Paper content}
+\begin{itemize}[nosep]
+  \task Fill every \X{} from the results files.
+  \task Describe the final heuristic and any move ordering (Section II-B, Jonah).
+  \task Write the results discussion (Section III, Ryan).
+  \task Rewrite the Abstract and Introduction summary with real findings (Jonah).
+  \task Rewrite the Conclusion with real findings (Ryan).
+  \task Finalize the generative AI statement, following the course rules.
+  \task Fill in the author details (department, university, city, email).
+\end{itemize}
+
+\subsection*{Formatting and checks}
+\begin{itemize}[nosep]
+  \task Copy everything into \texttt{project-template-letter.docx} using the template's
+        styles. Remove the unused author blocks and the template's sample references.
+  \task No symbols, special characters, footnotes, or math in the title or abstract.
+  \task Every table and figure is numbered, captioned, and discussed in the text, with
+        units labeled.
+  \task Every reference is cited in the text, and every citation is in the reference list.
+        Check the reference details.
+  \task Abbreviations are defined on first use.
+  \task Each teammate proofreads the other's sections.
+  \task A fresh clone plus \texttt{pip install -r requirements.txt} reproduces every figure.
+\end{itemize}
+
+\end{document}
