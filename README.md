@@ -21,7 +21,16 @@ We compare two classic game-playing AI methods in Connect Four: **minimax with a
 
 Metrics: win, loss, and draw rate; positions searched per move (minimax); seconds per move.
 
-Run a match series from the repository root and save per-game metrics to CSV:
+To reproduce every result and figure in the paper with one command (about 40 minutes):
+
+```bash
+python3 -m experiments.run_all              # full run: 100 games per matchup, seed 42
+python3 -m experiments.run_all --games 2    # quick smoke test
+```
+
+It runs all 44 matchups one at a time, so timings aren't skewed: minimax at depths 1–6 vs. random and greedy, with and without pruning; MCTS at 100–5,000 iterations vs. random and greedy; minimax (depths 2, 4, 6) vs. MCTS (100, 1,000, 5,000 iterations); and greedy vs. random. No-pruning runs use 20 games, since they pick the same moves as pruned minimax and only measure search cost. Each matchup is saved to its own CSV in `results/`, with the machine's specs in `results/environment.txt`, and then all figures are made.
+
+To run a single match series instead and save per-game metrics to CSV:
 
 ```bash
 python3 -m experiments.run_matches --bot1 minimax --bot2 greedy --games 100 --depth 4 --seed 42
@@ -77,6 +86,7 @@ The board prints as dots for empty cells and colored `O`s for pieces (red for pl
 - `src/minimax.py`: the minimax bot with alpha-beta pruning (`MinimaxBot`).
 - `src/mcts.py`: the Monte Carlo Tree Search bot (`MCTSBot`).
 - `tests/`: unit tests for the board, bots, match runner, and plots.
+- `experiments/run_all.py`: runs every experiment in the paper, then makes the figures.
 - `experiments/run_matches.py`: plays bot-vs-bot matches and saves per-game CSVs to `results/`.
 - `experiments/plots.py`: turns the CSVs into figures and the head-to-head table in `figures/`.
 - `docs/paper_draft.pdf`: mock draft of the final paper, with a checklist of what is left. Rebuild from `paper_draft.tex` with `pdflatex paper_draft.tex` in `docs/`.
