@@ -1,19 +1,25 @@
 """Run every experiment in the paper, then make all the figures.
 
 Run from the repository root:
-    python3 -m experiments.run_all               # the full run (about an hour)
+    python3 -m experiments.run_all               # full run, one matchup at a time (~40 min)
+    python3 -m experiments.run_all --workers 6   # full run, 6 matchups at once (~10 min)
     python3 -m experiments.run_all --games 2     # a quick smoke test
 
 Each matchup is saved to its own CSV in results/ (overwriting any old copy),
 then experiments.plots turns them into figures/. The machine's specs are
 saved to results/environment.txt for the paper's Hardware section.
 
-Matchups run one at a time, never in parallel, so the time-per-move numbers
-aren't slowed down by other matchups competing for the CPU.
+By default, matchups run one at a time, so the time-per-move numbers aren't
+slowed down by other matchups competing for the CPU. --workers N runs N
+matchups at once in separate processes (Python threads can't run Python code
+in parallel). Win rates are identical either way, because every game is
+seeded; only the timings get noisier, and the worker count is saved in
+environment.txt so the paper can report it.
 """
 
 import argparse
 import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import platform
 import subprocess
 import sys
@@ -81,7 +87,7 @@ def _cpu_name():
     return platform.processor() or "unknown"
 
 
-def write_environment(path, total_seconds):
+def write_environment(path, total_seconds, workers):
     """Save the machine details the paper's Hardware section asks for."""
     try:
         commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
@@ -94,7 +100,20 @@ def write_environment(path, total_seconds):
         env_file.write(f"OS: {platform.platform()}\n")
         env_file.write(f"Python: {platform.python_version()}\n")
         env_file.write(f"Git commit: {commit}\n")
+        env_file.write(f"Matchups run in parallel: {workers}\n")
         env_file.write(f"Total run time: {total_seconds / 60:.1f} minutes\n")
+
+
+def run_one(filename, kwargs, results_dir):
+    """Run one matchup and save its CSV. Returns a one-line progress summary.
+
+    This is a top-level function so worker processes can call it.
+    """
+    start = time.perf_counter()
+    rows, _ = run_matches(seed=SEED, output_path=os.path.join(results_dir, filename), **kwargs)
+    bot1_wins = sum(row["bot1_result"] == "win" for row in rows)
+    return (f"{filename}: bot1 won {bot1_wins}/{len(rows)} "
+            f"({time.perf_counter() - start:.0f}s)")
 
 
 def main():
@@ -103,6 +122,8 @@ def main():
                         help=f"games per matchup (default {GAMES})")
     parser.add_argument("--no-pruning-games", type=int, default=NO_PRUNING_GAMES,
                         help=f"games per no-pruning matchup (default {NO_PRUNING_GAMES})")
+    parser.add_argument("--workers", type=int, default=1,
+                        help="matchups to run at once (default 1: one at a time, cleanest timings)")
     parser.add_argument("--results-dir", default="results")
     parser.add_argument("--figures-dir", default="figures")
     args = parser.parse_args()
@@ -110,16 +131,19 @@ def main():
     plan = build_plan(args.games, min(args.no_pruning_games, args.games))
     start = time.perf_counter()
 
-    for number, (filename, kwargs) in enumerate(plan, start=1):
-        matchup_start = time.perf_counter()
-        output_path = os.path.join(args.results_dir, filename)
-        rows, _ = run_matches(seed=SEED, output_path=output_path, **kwargs)
-        bot1_wins = sum(row["bot1_result"] == "win" for row in rows)
-        print(f"[{number}/{len(plan)}] {filename}: bot1 won {bot1_wins}/{len(rows)} "
-              f"({time.perf_counter() - matchup_start:.0f}s)", flush=True)
+    if args.workers <= 1:
+        for number, (filename, kwargs) in enumerate(plan, start=1):
+            print(f"[{number}/{len(plan)}] {run_one(filename, kwargs, args.results_dir)}", flush=True)
+    else:
+        with ProcessPoolExecutor(max_workers=args.workers) as pool:
+            futures = [pool.submit(run_one, filename, kwargs, args.results_dir)
+                       for filename, kwargs in plan]
+            # Print each matchup as it finishes, which may be out of order.
+            for number, future in enumerate(as_completed(futures), start=1):
+                print(f"[{number}/{len(plan)}] {future.result()}", flush=True)
 
     write_environment(os.path.join(args.results_dir, "environment.txt"),
-                      time.perf_counter() - start)
+                      time.perf_counter() - start, args.workers)
 
     # Make the figures with the same Python interpreter that ran the matches.
     subprocess.run([sys.executable, "-m", "experiments.plots",
