@@ -62,6 +62,20 @@ class TestRunMatches(unittest.TestCase):
         self.assertEqual(rows[0]["depth"], 1)
         self.assertTrue(rows[0]["alpha_beta"])
 
+    def test_each_bot_plays_its_own_moves_in_both_seats(self):
+        # Only minimax searches positions, so in every game, whichever seat
+        # bot1 is in, all searching must be credited to bot1 (minimax).
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = os.path.join(temp_dir, "seats.csv")
+            rows, _ = run_matches(
+                "minimax", "random", games=4, depth=1, output_path=output_path
+            )
+
+        self.assertEqual([row["bot1_player"] for row in rows], [1, 2, 1, 2])
+        for row in rows:
+            self.assertGreater(row["bot1_positions_searched"], 0)
+            self.assertEqual(row["bot2_positions_searched"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

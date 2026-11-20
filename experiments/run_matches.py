@@ -54,13 +54,15 @@ def play_game(bot1_name, bot2_name, game_number, seed, depth=4, alpha_beta=True)
     game_seed = seed + game_number - 1
     bot1_rng = random.Random(game_seed * 2)
     bot2_rng = random.Random(game_seed * 2 + 1)
-    bots = {
-        1: _create_bot(bot1_name, bot1_rng.randrange(2 ** 32), depth, alpha_beta),
-        2: _create_bot(bot2_name, bot2_rng.randrange(2 ** 32), depth, alpha_beta),
-    }
-
+    # bot1 moves first in odd-numbered games and second in even-numbered ones.
     bot1_player = 1 if game_number % 2 == 1 else 2
     bot2_player = 3 - bot1_player
+    # Seat each bot at its player number for this game, so bots[player] is
+    # the bot that actually makes that player's moves.
+    bots = {
+        bot1_player: _create_bot(bot1_name, bot1_rng.randrange(2 ** 32), depth, alpha_beta),
+        bot2_player: _create_bot(bot2_name, bot2_rng.randrange(2 ** 32), depth, alpha_beta),
+    }
     board = Board()
     elapsed = {"bot1": 0.0, "bot2": 0.0}
     positions = {"bot1": 0, "bot2": 0}
