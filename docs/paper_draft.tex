@@ -33,7 +33,7 @@
 \newcommand{\figbox}[1]{\fbox{\parbox[c][0.95in][c]{0.92\columnwidth}{\centering
   \textcolor{red}{\small Figure goes here:\\ \texttt{#1}}}}}
 
-\title{\Large Depth versus Strength: Evaluating Minimax with\\ Alpha-Beta Pruning in Connect Four\\[4pt]
+\title{\Large Search versus Simulation: Comparing Minimax and\\ Monte Carlo Tree Search in Connect Four\\[4pt]
   \normalsize\textcolor{red}{MOCK DRAFT --- not for submission}}
 \author{
   \begin{tabular}{c@{\hspace{3em}}c}
@@ -49,19 +49,20 @@
 \maketitle
 
 \noindent\textbf{\textit{Abstract}---Board games give a clear, measurable setting for
-testing how well a search-based agent can plan ahead. We built an agent for Connect Four
-that uses depth-limited minimax search with a heuristic evaluation function and optional
-alpha-beta pruning. We compared it against two baseline agents, one that plays randomly and
-one that greedily takes immediate wins and blocks immediate losses, at search depths from
-one to six moves. Across \X{} games per matchup, the minimax agent won \X{} percent of games
-against the random agent and \X{} percent against the greedy agent at depth \X{}. Alpha-beta
-pruning reduced the number of positions searched by \X{} percent at depth six without
-changing the moves chosen.} \todo{state the main takeaway; rewrite once results are in.
-No symbols, footnotes, or math in the title or abstract.}
+comparing how artificial intelligence methods plan ahead. We built two agents for Connect
+Four. The first uses depth-limited minimax search with a hand-written evaluation function and
+optional alpha-beta pruning. The second uses Monte Carlo tree search, which needs no
+evaluation function and instead judges moves by playing many random games. We tested both
+against a random agent and a greedy agent, and against each other, while varying how much
+each agent searches. Across \X{} games per matchup, minimax at depth \X{} won \X{} percent
+of games against the greedy agent, and Monte Carlo tree search with \X{} iterations won \X{}
+percent. Head to head, \X{}. Alpha-beta pruning reduced the positions searched by \X{}
+percent at depth six without changing the moves chosen.} \todo{state the main takeaway;
+rewrite once results are in. No symbols, footnotes, or math in the title or abstract.}
 
 \medskip
 \noindent\textbf{\textit{Keywords}---game playing, adversarial search, minimax, alpha-beta
-pruning, Connect Four}
+pruning, Monte Carlo tree search, Connect Four}
 
 \section{Introduction}
 
@@ -72,15 +73,21 @@ afternoon but has far too many positions to solve by brute force during play, wh
 a standard setting for studying adversarial search~[1]. With perfect play, the first player
 can always force a win~[2], but finding those moves in real time takes search.
 
-Our goal was to measure how much a classic AI method, minimax search, improves play over
-simple strategies, and what that improvement costs in computation. Specifically, we asked:
+Two classic approaches to this kind of search work very differently. \emph{Minimax}~[1]
+looks a fixed number of moves ahead and relies on a hand-written evaluation function to
+score positions it cannot see to the end; \emph{alpha-beta pruning}~[3] makes it faster
+without changing its decisions. \emph{Monte Carlo tree search} (MCTS)~[4],~[5] needs no
+evaluation function: it estimates how good each move is by playing many random games to the
+end, focusing its effort on the moves that look most promising.
+
+Our goal was to compare these two methods on the same game. Specifically, we asked:
 \begin{enumerate}[leftmargin=*,nosep]
-  \item How does the win rate of a minimax agent change as its search depth increases,
-        against a random opponent and against a greedy opponent?
-  \item How much does alpha-beta pruning~[3] reduce the number of positions searched and
-        the time per move?
+  \item How does each agent's win rate change as it is allowed to search more (deeper for
+        minimax, more iterations for MCTS), against random and greedy opponents?
+  \item Which method plays better head to head, and at what cost in time per move?
+  \item How much does alpha-beta pruning reduce the work minimax does?
 \end{enumerate}
-We implemented the game, two baseline agents, and a minimax agent in Python, then ran \X{}
+We implemented the game, two baseline agents, and both AI agents in Python, then ran \X{}
 games per matchup with fixed random seeds. \todo{one or two sentences summarizing the main
 findings.}
 
@@ -93,11 +100,12 @@ between agents. Each matchup between two agents consists of \X{} games. The agen
 who moves first, because the first player has an advantage in Connect Four~[2]. Every game
 uses a fixed random seed, so any game can be replayed exactly by rerunning our scripts.
 
-For each move we record the agent, the search depth, the number of positions searched, and
-the time taken. For each game we record the winner, or a draw. There is no training step, so
-no train and test split is needed and there is no risk of data leakage. The minimax agent's
-evaluation function was designed by hand and was not tuned on the games we report.
-\todo{confirm the number of games and the seeds.}
+For each move we record the agent, its settings (depth or iterations), the number of
+positions searched (minimax only), and the time taken. For each game we record the winner,
+or a draw. There is no training step, so no train and test split is needed and there is no
+risk of data leakage. The minimax evaluation function and the MCTS settings were chosen by
+hand and were not tuned on the games we report. \todo{confirm the number of games and the
+seeds.}
 
 \subsection{AI Model and Implementation}
 
@@ -111,42 +119,60 @@ opponent's immediate win if one exists, and otherwise plays randomly.
 
 \textit{Minimax agent.} Minimax~[1] explores the tree of possible future moves to a fixed
 depth. It assumes the agent picks the move with the highest score and the opponent picks the
-move with the lowest. Won and lost positions get very large positive or negative scores.
-Positions at the depth limit are scored by a heuristic evaluation function.
-\todo{Jonah: describe the final heuristic. The plan is to count the agent's open two- and
-three-in-a-rows minus the opponent's, plus a bonus for center-column pieces.}
+move with the lowest. Won and lost positions get very large positive or negative scores,
+adjusted so that faster wins and slower losses are preferred. Positions at the depth limit
+are scored by an evaluation function that looks at every group of four cells in a line: each
+group holding three of the agent's pieces and one empty cell adds 5, each with two pieces and
+two empty cells adds 2, the same patterns for the opponent subtract the same amounts, and
+each piece in the center column adds 3 for its owner. \todo{Jonah: check this against
+\texttt{src/minimax.py} and rewrite in your own words.}
 
 \textit{Alpha-beta pruning.} Alpha-beta pruning~[3] skips branches of the search tree that
 cannot affect the final decision. It always returns the same move as plain minimax but
 usually searches far fewer positions. Our implementation can switch pruning on or off, so
-the two versions can be compared directly. \todo{mention move ordering if used.}
+the two versions can be compared directly. Moves are tried from the center column outwards,
+which tends to find good moves early and lets pruning skip more branches.
 
-\textit{Tools.} The project is written in Python 3~[4]. The game and agents use only the
-standard library, and figures are made with Matplotlib~[5]. Code is available at
+\textit{MCTS agent.} MCTS~[4],~[5] builds a search tree gradually. Each iteration has four
+steps. \emph{Selection} walks down the tree from the current position, at each step choosing
+the move with the highest Upper Confidence Bound (UCB1) score, which balances moves that have
+won often against moves that have rarely been tried; we use the standard exploration
+constant of $\sqrt{2}$. \emph{Expansion} adds one untried move to the tree.
+\emph{Simulation} plays random moves from that position until the game ends.
+\emph{Backpropagation} updates the visit and win counts of every node on the path, counting a
+draw as half a win. After all iterations, the agent plays the move that was visited most.
+\todo{Jonah: rewrite in your own words.}
+
+\textit{Tools.} The project is written in Python 3~[6]. The game and agents use only the
+standard library, and figures are made with Matplotlib~[7]. Code is available at
 \url{https://github.com/jfemiani10/connect4-bot}.
 
 \textit{Use of generative AI.} We used Claude Code (Anthropic) to help write the game board,
-terminal display, random agent, unit tests, and an early outline of this paper. We reviewed,
-tested, and edited all generated code and text. \todo{update to match what was actually used,
-following the course rules.}
+terminal display, random, minimax, and MCTS agents, unit tests, and an early outline of this
+paper. We reviewed, tested, and edited all generated code and text. \todo{update to match
+what was actually used, following the course rules.}
 
 \subsection{Experimental Setup}
 
-We ran three experiments:
+We ran four experiments:
 \begin{enumerate}[leftmargin=*,nosep]
-  \item \emph{Win rate versus depth.} The minimax agent with alpha-beta pruning, at depths 1
-        through 6, played \X{} games against each baseline.
-  \item \emph{Baseline check.} The greedy agent played \X{} games against the random agent,
-        to confirm that it is the stronger baseline.
+  \item \emph{Minimax strength.} Minimax with pruning, at depths 1 through 6, played \X{}
+        games against each baseline.
+  \item \emph{MCTS strength.} MCTS with 100, 300, 1000, 3000, and 5000 iterations played
+        \X{} games against each baseline.
+  \item \emph{Head to head.} Minimax at depths 2, 4, and 6 played \X{} games against MCTS
+        with 100, 1000, and 5000 iterations.
   \item \emph{Cost of search.} At each depth, minimax with and without pruning was run on
         the same positions, recording positions searched and time per move.
 \end{enumerate}
+As a check on the baselines, the greedy agent also played \X{} games against the random
+agent.
 
 \textit{Metrics.} \emph{Win rate} is the fraction of games won, with draws reported
 separately, and measures playing strength. \emph{Positions searched per move} counts the
-board positions evaluated before choosing a move; it measures computational effort and does
-not depend on hardware. \emph{Time per move} is the average number of seconds per move; it
-measures practical cost but depends on hardware.
+board positions minimax evaluates before choosing a move; it measures computational effort
+and does not depend on hardware. \emph{Time per move} is the average number of seconds per
+move; it is the only cost measure that applies to both methods, but it depends on hardware.
 
 \textit{Hardware.} \todo{CPU model, RAM, operating system, and Python version used for the
 timing results.}
@@ -154,19 +180,33 @@ timing results.}
 \section{Experimental Results}
 
 \begin{table}[t]
-\caption{Win, draw, and loss rates (\%) of the minimax agent by search depth}
-\label{tab:winrates}
+\caption{Win rate (\%) of each agent against the baselines}
+\label{tab:baselines}
 \centering\footnotesize
-\begin{tabular}{ccc}
+\begin{tabular}{lcc}
 \toprule
-Depth & vs.\ Random (W / D / L) & vs.\ Greedy (W / D / L) \\
+Agent & vs.\ Random & vs.\ Greedy \\
 \midrule
-1 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
-2 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
-3 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
-4 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
-5 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
-6 & \X{} / \X{} / \X{} & \X{} / \X{} / \X{} \\
+Minimax, depth 1--6 & \X{} \ldots\ \X{} & \X{} \ldots\ \X{} \\
+MCTS, 100--5000 iterations & \X{} \ldots\ \X{} & \X{} \ldots\ \X{} \\
+Greedy & \X{} & --- \\
+\bottomrule
+\end{tabular}
+\\[2pt]\textcolor{red}{\footnotesize TODO: one row per depth and iteration count, with
+win / draw / loss.}
+\end{table}
+
+\begin{table}[t]
+\caption{Head-to-head win rate (\%) of minimax against MCTS}
+\label{tab:headtohead}
+\centering\footnotesize
+\begin{tabular}{lccc}
+\toprule
+& MCTS 100 & MCTS 1000 & MCTS 5000 \\
+\midrule
+Minimax depth 2 & \X{} & \X{} & \X{} \\
+Minimax depth 4 & \X{} & \X{} & \X{} \\
+Minimax depth 6 & \X{} & \X{} & \X{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -175,45 +215,54 @@ Depth & vs.\ Random (W / D / L) & vs.\ Greedy (W / D / L) \\
 \centering\figbox{figures/win\_rate\_vs\_depth.png}
 \caption{Win rate (\%) of the minimax agent versus search depth, against the random and
 greedy agents.}
-\label{fig:winrate}
+\label{fig:minimax}
+\end{figure}
+
+\begin{figure}[t]
+\centering\figbox{figures/win\_rate\_vs\_iterations.png}
+\caption{Win rate (\%) of the MCTS agent versus iterations per move (log scale), against the
+random and greedy agents.}
+\label{fig:mcts}
 \end{figure}
 
 \begin{figure}[t]
 \centering\figbox{figures/positions\_vs\_depth.png}
-\caption{Average positions searched per move versus search depth, with and without
-alpha-beta pruning (log scale).}
+\caption{Average positions searched per move by minimax versus search depth, with and
+without alpha-beta pruning (log scale).}
 \label{fig:positions}
 \end{figure}
 
 \begin{figure}[t]
-\centering\figbox{figures/time\_vs\_depth.png}
-\caption{Average time per move (s) versus search depth, with and without alpha-beta
-pruning.}
+\centering\figbox{figures/time\_per\_move.png}
+\caption{Average time per move (s) of each agent setting.}
 \label{fig:time}
 \end{figure}
 
-Table~\ref{tab:winrates} and Fig.~\ref{fig:winrate} show the minimax agent's results against
-both baselines. Fig.~\ref{fig:positions} and Fig.~\ref{fig:time} show the cost of search
-with and without pruning. The greedy agent won \X{}\% of its games against the random agent.
+Table~\ref{tab:baselines}, Fig.~\ref{fig:minimax}, and Fig.~\ref{fig:mcts} show how each
+agent performs against the baselines as it is allowed to search more.
+Table~\ref{tab:headtohead} compares the two methods directly. Fig.~\ref{fig:positions} shows
+the savings from alpha-beta pruning, and Fig.~\ref{fig:time} compares the time each agent
+takes per move.
 
-\todo{Ryan: two or three paragraphs discussing the results. At what depth does minimax start
-reliably beating each baseline? How fast do positions searched grow with depth, and how much
-does pruning cut that growth? Does time per move follow the same pattern? Explain anything
-unexpected, such as draws or losses at low depth.}
+\todo{Ryan: two or three paragraphs discussing the results. How much search does each method
+need to reliably beat each baseline? Which method wins head to head at similar time per move?
+How much does pruning cut the positions searched? Explain anything unexpected.}
 
 \section{Conclusion}
 
-We built a Connect Four agent based on minimax search with alpha-beta pruning and compared
-it with random and greedy baselines. \todo{main result about win rate versus depth; main
-result about the savings from pruning. No claims not supported earlier.}
+We built two Connect Four agents, one based on minimax search with alpha-beta pruning and
+one based on Monte Carlo tree search, and compared them with each other and with random and
+greedy baselines. \todo{main results: strength versus search for each method, head-to-head
+result, savings from pruning. No claims not supported earlier.}
 
-\textit{Limitations.} We only compared against weak, hand-written opponents, not strong or
-human players. The evaluation function was designed by hand and was not tuned. Timing results
-depend on our hardware and on Python's speed.
+\textit{Limitations.} We only compared against weak, hand-written opponents and each other,
+not strong or human players. The minimax evaluation function and the MCTS settings were
+chosen by hand and were not tuned. Timing results depend on our hardware and on Python's
+speed.
 
 \textit{Next steps.} Possible extensions include testing against a perfect-play solver,
-adding move ordering or a transposition table to search deeper, and comparing against a
-different method such as Monte Carlo Tree Search.
+adding a transposition table so minimax can search deeper, and giving MCTS smarter playouts
+than purely random moves.
 
 \section*{References}
 \todo{keep only sources we actually read; check every detail.}
@@ -225,6 +274,11 @@ different method such as Monte Carlo Tree Search.
   wins,'' M.S. thesis, Vrije Universiteit, Amsterdam, The Netherlands, 1988.
 \item D. E. Knuth and R. W. Moore, ``An analysis of alpha-beta pruning,'' \textit{Artificial
   Intelligence}, vol. 6, no. 4, pp. 293--326, 1975, doi: 10.1016/0004-3702(75)90019-3.
+\item L. Kocsis and C. Szepesv\'ari, ``Bandit based Monte-Carlo planning,'' in \textit{Proc.
+  17th European Conf. Machine Learning (ECML)}, 2006, pp. 282--293, doi: 10.1007/11871842\_29.
+\item C. B. Browne \textit{et al.}, ``A survey of Monte Carlo tree search methods,''
+  \textit{IEEE Trans. Computational Intelligence and AI in Games}, vol. 4, no. 1, pp. 1--43,
+  2012, doi: 10.1109/TCIAIG.2012.2186810.
 \item Python Software Foundation, ``Python 3 documentation.'' [Online]. Available:
   \url{https://docs.python.org/3/}
 \item J. D. Hunter, ``Matplotlib: A 2D graphics environment,'' \textit{Computing in Science
@@ -235,20 +289,22 @@ different method such as Monte Carlo Tree Search.
 \onecolumn
 \section*{Checklist: What's Left Before Submission}
 \newcommand{\task}{\item[$\square$]}
+\newcommand{\done}{\item[$\boxtimes$]}
 
 \subsection*{Code and experiments (see TODO.md for who does what)}
 \begin{itemize}[nosep]
+  \done Minimax bot with heuristic, alpha-beta on/off flag, and a positions-searched counter (Jonah).
+  \done MCTS bot (Jonah).
   \task Greedy bot (Ryan).
-  \task Minimax bot with heuristic, alpha-beta on/off flag, and a positions-searched counter (Jonah).
   \task \texttt{experiments/run\_matches.py} writing to \texttt{results/*.csv} (Ryan).
-  \task \texttt{experiments/plots.py} producing Figs.~1--3 in \texttt{figures/} (Ryan).
+  \task \texttt{experiments/plots.py} producing Figs.~1--4 and the numbers for Tables~I--II (Ryan).
   \task Run all experiments and record the hardware used.
 \end{itemize}
 
 \subsection*{Paper content}
 \begin{itemize}[nosep]
   \task Fill every \X{} from the results files.
-  \task Describe the final heuristic and any move ordering (Section II-B, Jonah).
+  \task Check and rewrite the minimax and MCTS descriptions in your own words (Section II-B, Jonah).
   \task Write the results discussion (Section III, Ryan).
   \task Rewrite the Abstract and Introduction summary with real findings (Jonah).
   \task Rewrite the Conclusion with real findings (Ryan).
