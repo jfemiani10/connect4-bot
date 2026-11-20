@@ -166,6 +166,12 @@ def make_plots(aggregates, output_dir):
             series[(opponent, alpha_beta)].append((depth, values[metric]))
 
         for (opponent, alpha_beta), points in sorted(series.items()):
+            # Pruning never changes minimax's moves, so its win rate is the
+            # same either way. The no-pruning runs use fewer games, which
+            # would make a different-looking (but not different) win rate,
+            # so they're left off the win-rate chart.
+            if metric == "win_rate" and not alpha_beta:
+                continue
             points.sort()
             pruning_label = "alpha-beta" if alpha_beta else "no pruning"
             axis.plot(
@@ -184,6 +190,11 @@ def make_plots(aggregates, output_dir):
         if metric == "win_rate":
             axis.set_ylim(0, 1)
             axis.yaxis.set_major_formatter(PercentFormatter(1.0))
+        else:
+            # Search cost grows exponentially with depth, so a log scale
+            # keeps the small pruned values visible next to the large ones.
+            axis.set_yscale("log")
+            axis.set_ylabel(f"{y_label} (log scale)")
         figure.tight_layout()
         output_path = output_dir / filename
         figure.savefig(output_path, dpi=160)
