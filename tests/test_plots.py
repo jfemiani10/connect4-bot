@@ -5,8 +5,15 @@ import os
 import tempfile
 import unittest
 
-from experiments.plots import aggregate_match_rows, make_plots, read_match_rows
-from experiments.run_matches import CSV_FIELDS
+from experiments.plots import (
+    aggregate_head_to_head,
+    aggregate_match_rows,
+    aggregate_mcts_rows,
+    make_mcts_plots,
+    make_plots,
+    read_match_rows,
+)
+from experiments.run_matches import CSV_FIELDS, run_matches
 
 
 def match_row(game, opponent, depth, alpha_beta, result, moves, positions, seconds):
@@ -61,6 +68,37 @@ class TestPlots(unittest.TestCase):
 
             self.assertEqual(len(paths), 3)
             self.assertTrue(all(path.is_file() and path.stat().st_size > 0 for path in paths))
+
+
+class TestMCTSPlots(unittest.TestCase):
+    def test_mcts_and_head_to_head_from_real_matches(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            input_dir = os.path.join(temp_dir, "results")
+            output_dir = os.path.join(temp_dir, "figures")
+            # MCTS in either seat (bot1 or bot2) must be found.
+            run_matches("mcts", "random", games=2, iterations=50,
+                        output_path=os.path.join(input_dir, "a.csv"))
+            run_matches("greedy", "mcts", games=2, iterations=100,
+                        output_path=os.path.join(input_dir, "b.csv"))
+            run_matches("minimax", "mcts", games=2, depth=2, iterations=50,
+                        output_path=os.path.join(input_dir, "c.csv"))
+            rows = read_match_rows(input_dir)
+
+            mcts = aggregate_mcts_rows(rows)
+            self.assertEqual(set(mcts), {("random", 50), ("greedy", 100)})
+            self.assertEqual(mcts[("random", 50)]["games"], 2)
+
+            paths = make_mcts_plots(mcts, output_dir)
+            self.assertEqual(len(paths), 2)
+            self.assertTrue(all(path.is_file() and path.stat().st_size > 0 for path in paths))
+
+        summary = aggregate_head_to_head(rows)
+        self.assertEqual(len(summary), 1)
+        entry = summary[0]
+        self.assertEqual((entry["minimax_depth"], entry["mcts_iterations"], entry["games"]), (2, 50, 2))
+        self.assertAlmostEqual(
+            entry["minimax_win_rate"] + entry["draw_rate"] + entry["mcts_win_rate"], 1.0
+        )
 
 
 if __name__ == "__main__":
