@@ -18,14 +18,32 @@ We build a Connect Four bot using **minimax with alpha-beta pruning** and compar
 
 Metrics: win, loss, and draw rate; positions searched per move; seconds per move.
 
+Run a match series from the repository root and save per-game metrics to CSV:
+
+```bash
+python3 -m experiments.run_matches --bot1 minimax --bot2 greedy --games 100 --depth 4 --seed 42
+python3 -m experiments.run_matches --bot1 minimax --bot2 random --games 100 --depth 6 --no-pruning --output results/minimax_no_pruning.csv
+```
+
+The bots alternate who goes first. CSV files include each bot's outcome, move count, total positions searched, and average decision time per move, along with seed and minimax settings.
+
+Generate plots from the match CSV files in `results/`:
+
+```bash
+python3 -m experiments.plots
+```
+
+The script writes win rate vs. depth, positions searched per move vs. depth, and seconds per move vs. depth to `figures/`. To produce depth curves, run matches at multiple minimax depths; run with and without `--no-pruning` to compare search and timing metrics.
+
 ## Usage
 
-Requires Python 3.
+Requires Python 3. Install plotting dependencies with `python3 -m pip install -r requirements.txt`.
 
 Run everything from the repo root:
 
 ```bash
 python3 play.py                          # play the random bot (you go first)
+python3 play.py --bot greedy             # play the greedy bot
 python3 play.py --bot minimax            # play minimax, looking 4 moves ahead
 python3 play.py --bot minimax --depth 6  # stronger, slower minimax
 python3 play.py --second                 # the bot goes first
@@ -40,10 +58,10 @@ The board prints as dots for empty cells and colored `O`s for pieces (red for pl
 - `play.py`: human vs. bot game in the terminal.
 - `src/board.py`: board state and rules (`Board` class).
 - `src/display.py`: terminal board display.
-- `src/baselines.py`: baseline bots. `RandomBot` is done; `GreedyBot` is to do.
+- `src/baselines.py`: baseline bots (`RandomBot` and `GreedyBot`).
 - `src/minimax.py`: the minimax bot with alpha-beta pruning (`MinimaxBot`).
-- `tests/`: unit tests for the board and the minimax bot.
-- `experiments/`: match and plotting scripts, which write to `results/` and `figures/` (to do).
+- `tests/`: unit tests for the board and bots.
+- `experiments/`: match and plotting scripts, which write to `results/` and `figures/`.
 - `docs/paper_draft.pdf`: mock draft of the final paper, with a checklist of what is left. Rebuild from `paper_draft.tex` with `pdflatex paper_draft.tex` in `docs/`.
 - `TODO.md`: the task split between teammates.
 

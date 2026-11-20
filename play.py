@@ -12,7 +12,7 @@ Type a column number (0-6) to drop your piece, or q to quit.
 
 import argparse
 
-from src.baselines import RandomBot
+from src.baselines import GreedyBot, RandomBot
 from src.board import Board
 from src.display import print_board
 from src.minimax import MinimaxBot
@@ -24,6 +24,7 @@ COLOR_NAMES = {1: "red", 2: "yellow"}
 # command-line options. To add a new bot (e.g. greedy), add a line here.
 BOTS = {
     "random": lambda args: RandomBot(seed=args.seed),
+    "greedy": lambda args: GreedyBot(seed=args.seed),
     "minimax": lambda args: MinimaxBot(depth=args.depth, alpha_beta=not args.no_pruning),
 }
 

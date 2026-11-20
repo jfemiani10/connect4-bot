@@ -19,9 +19,9 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
 - [ ] Paper: **AI Model and Implementation**, including which AI tools were used and how.
 
 ## Ryan: baselines and experiments (~3–4 hrs)
-- [ ] `src/baselines.py`: the greedy bot (the random bot is already there; follow the same interface). Then add a `"greedy"` line to `BOTS` in `play.py`.
-- [ ] `experiments/run_matches.py`: play N games (e.g. 100) between any two bots, alternating who goes first, with fixed seeds. Save win/loss/draw, positions searched, and time per move to `results/*.csv`.
-- [ ] `experiments/plots.py`: make the figures:
+- [x] `src/baselines.py`: the greedy bot (the random bot is already there; follow the same interface). Then add a `"greedy"` line to `BOTS` in `play.py`.
+- [x] `experiments/run_matches.py`: play N games (e.g. 100) between any two bots, alternating who goes first, with fixed seeds. Save win/loss/draw, positions searched, and time per move to `results/*.csv`.
+- [x] `experiments/plots.py`: make the figures:
   - win rate vs. depth (minimax against random and against greedy)
   - positions searched vs. depth (with vs. without alpha-beta)
   - time per move vs. depth

@@ -1,0 +1,11 @@
+game,seed,bot1,bot2,bot1_player,bot2_player,winner,bot1_result,bot2_result,moves,depth,alpha_beta,bot1_moves,bot2_moves,bot1_positions_searched,bot2_positions_searched,bot1_seconds_per_move,bot2_seconds_per_move
+1,42,minimax,greedy,1,2,bot1,win,loss,21,2,True,11,10,217,0,0.0006689909125932238,7.082995725795626e-05
+2,43,minimax,greedy,2,1,bot2,loss,win,21,2,True,10,11,0,284,7.615999784320593e-05,0.0009336272593248974
+3,44,minimax,greedy,1,2,bot1,win,loss,7,2,True,4,3,100,0,0.0007697750115767121,6.856668430070083e-05
+4,45,minimax,greedy,2,1,bot2,loss,win,25,2,True,12,13,0,297,6.830831989645958e-05,0.0007527153759908217
+5,46,minimax,greedy,1,2,bot1,win,loss,21,2,True,11,10,240,0,0.0007179727333343842,6.500998279079795e-05
+6,47,minimax,greedy,2,1,bot2,loss,win,11,2,True,5,6,0,144,7.216001395136118e-05,0.0007638833485543728
+7,48,minimax,greedy,1,2,bot1,win,loss,17,2,True,9,8,223,0,0.0008068889146670699,7.461250061169267e-05
+8,49,minimax,greedy,2,1,bot2,loss,win,19,2,True,9,10,0,234,7.482220987892813e-05,0.0007294700131751597
+9,50,minimax,greedy,1,2,bot1,win,loss,7,2,True,4,3,99,0,0.0007677749963477254,7.036662039657433e-05
+10,51,minimax,greedy,2,1,bot2,loss,win,7,2,True,3,4,0,92,7.806667902817328e-05,0.000687449995893985

@@ -30,7 +30,36 @@ class RandomBot:
         return self.rng.choice(board.valid_moves())
 
 
-# TODO (Ryan): add GreedyBot here, following the same interface:
-#   1. If a move wins immediately, play it.
-#   2. Otherwise, if the opponent could win next turn in some column, block it.
-#   3. Otherwise, play a random legal column.
+class GreedyBot:
+    """Win immediately, block an immediate opponent win, or play randomly."""
+
+    name = "greedy"
+
+    def __init__(self, seed=None):
+        self.rng = random.Random(seed)
+
+    def choose_move(self, board):
+        valid_moves = board.valid_moves()
+        me = board.current_player
+        opponent = 3 - me
+
+        winning_moves = []
+        for col in valid_moves:
+            child = board.copy()
+            child.play(col)
+            if child.winner() == me:
+                winning_moves.append(col)
+        if winning_moves:
+            return self.rng.choice(winning_moves)
+
+        blocking_moves = []
+        for col in valid_moves:
+            child = board.copy()
+            child.current_player = opponent
+            child.play(col)
+            if child.winner() == opponent:
+                blocking_moves.append(col)
+        if blocking_moves:
+            return self.rng.choice(blocking_moves)
+
+        return self.rng.choice(valid_moves)

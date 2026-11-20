@@ -1,0 +1,11 @@
+game,seed,bot1,bot2,bot1_player,bot2_player,winner,bot1_result,bot2_result,moves,depth,alpha_beta,bot1_moves,bot2_moves,bot1_positions_searched,bot2_positions_searched,bot1_seconds_per_move,bot2_seconds_per_move
+1,42,minimax,random,1,2,bot1,win,loss,7,1,True,4,3,28,0,0.00027645000955089927,2.3666458825270333e-06
+2,43,minimax,random,2,1,bot2,loss,win,7,1,True,3,4,0,28,1.400010660290718e-06,0.00026737499865703285
+3,44,minimax,random,1,2,bot1,win,loss,11,1,True,6,5,42,0,0.0002729333161065976,1.2999866157770156e-06
+4,45,minimax,random,2,1,bot2,loss,win,7,1,True,3,4,0,28,1.3333434859911601e-06,0.00026645002071745694
+5,46,minimax,random,1,2,bot1,win,loss,7,1,True,4,3,28,0,0.0002581500157248229,1.366677073140939e-06
+6,47,minimax,random,2,1,bot2,loss,win,11,1,True,5,6,0,42,1.259986311197281e-06,0.0002758000240040322
+7,48,minimax,random,1,2,bot1,win,loss,7,1,True,4,3,28,0,0.0002660500176716596,1.300009898841381e-06
+8,49,minimax,random,2,1,bot2,loss,win,7,1,True,3,4,0,28,1.266676311691602e-06,0.00026497503858990967
+9,50,minimax,random,1,2,bot1,win,loss,15,1,True,8,7,56,0,0.00027873752696905285,1.1714374912636622e-06
+10,51,minimax,random,2,1,bot2,loss,win,7,1,True,3,4,0,28,1.4999726166327794e-06,0.0002685750077944249
