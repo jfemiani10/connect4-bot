@@ -25,9 +25,11 @@ Requires Python 3.
 Run everything from the repo root:
 
 ```bash
-python3 play.py              # play against the random bot (you go first)
-python3 play.py --second     # the bot goes first
-python3 play.py --seed 42    # make the bot's moves repeatable
+python3 play.py                          # play the random bot (you go first)
+python3 play.py --bot minimax            # play minimax, looking 4 moves ahead
+python3 play.py --bot minimax --depth 6  # stronger, slower minimax
+python3 play.py --second                 # the bot goes first
+python3 play.py --seed 42                # make the random bot repeatable
 python3 -m unittest          # run the tests
 ```
 
@@ -39,8 +41,8 @@ The board prints as dots for empty cells and colored `O`s for pieces (red for pl
 - `src/board.py`: board state and rules (`Board` class).
 - `src/display.py`: terminal board display.
 - `src/baselines.py`: baseline bots. `RandomBot` is done; `GreedyBot` is to do.
-- `src/minimax.py`: the minimax bot (to do).
-- `tests/`: unit tests for the board.
+- `src/minimax.py`: the minimax bot with alpha-beta pruning (`MinimaxBot`).
+- `tests/`: unit tests for the board and the minimax bot.
 - `experiments/`: match and plotting scripts, which write to `results/` and `figures/` (to do).
 - `docs/paper_draft.pdf`: mock draft of the final paper, with a checklist of what is left. Rebuild from `paper_draft.tex` with `pdflatex paper_draft.tex` in `docs/`.
 - `TODO.md`: the task split between teammates.
