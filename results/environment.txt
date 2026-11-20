@@ -1,0 +1,7 @@
+CPU: Intel(R) Core(TM) Ultra 7 155H
+Logical cores: 22
+OS: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39
+Python: 3.12.3
+Git commit: 3e39a04
+Matchups run in parallel: 6
+Total run time: 11.5 minutes
