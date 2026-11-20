@@ -2,6 +2,10 @@
 
 Run from the repository root, for example:
     python3 -m experiments.run_matches --bot1 minimax --bot2 greedy --games 100
+    python3 -m experiments.run_matches --bot1 mcts --bot2 random --iterations 1000
+    python3 -m experiments.run_matches --bot1 minimax --bot2 mcts --depth 4 --iterations 1000
+
+--depth and --no-pruning apply to minimax; --iterations applies to MCTS.
 """
 
 import argparse
@@ -13,7 +17,10 @@ from datetime import datetime
 
 from src.baselines import GreedyBot, RandomBot
 from src.board import Board
+from src.mcts import MCTSBot
 from src.minimax import MinimaxBot
+
+BOT_NAMES = ("random", "greedy", "minimax", "mcts")
 
 
 CSV_FIELDS = [
@@ -29,6 +36,7 @@ CSV_FIELDS = [
     "moves",
     "depth",
     "alpha_beta",
+    "iterations",
     "bot1_moves",
     "bot2_moves",
     "bot1_positions_searched",
@@ -38,7 +46,7 @@ CSV_FIELDS = [
 ]
 
 
-def _create_bot(name, seed, depth, alpha_beta):
+def _create_bot(name, seed, depth, alpha_beta, iterations):
     """Create one bot with the requested repeatable random seed."""
     if name == "random":
         return RandomBot(seed=seed)
@@ -46,10 +54,12 @@ def _create_bot(name, seed, depth, alpha_beta):
         return GreedyBot(seed=seed)
     if name == "minimax":
         return MinimaxBot(depth=depth, alpha_beta=alpha_beta)
+    if name == "mcts":
+        return MCTSBot(iterations=iterations, seed=seed)
     raise ValueError(f"Unknown bot: {name}")
 
 
-def play_game(bot1_name, bot2_name, game_number, seed, depth=4, alpha_beta=True):
+def play_game(bot1_name, bot2_name, game_number, seed, depth=4, alpha_beta=True, iterations=1000):
     """Play one game and return its result and per-bot performance metrics."""
     game_seed = seed + game_number - 1
     bot1_rng = random.Random(game_seed * 2)
@@ -60,8 +70,10 @@ def play_game(bot1_name, bot2_name, game_number, seed, depth=4, alpha_beta=True)
     # Seat each bot at its player number for this game, so bots[player] is
     # the bot that actually makes that player's moves.
     bots = {
-        bot1_player: _create_bot(bot1_name, bot1_rng.randrange(2 ** 32), depth, alpha_beta),
-        bot2_player: _create_bot(bot2_name, bot2_rng.randrange(2 ** 32), depth, alpha_beta),
+        bot1_player: _create_bot(bot1_name, bot1_rng.randrange(2 ** 32), depth, alpha_beta,
+                                  iterations),
+        bot2_player: _create_bot(bot2_name, bot2_rng.randrange(2 ** 32), depth, alpha_beta,
+                                  iterations),
     }
     board = Board()
     elapsed = {"bot1": 0.0, "bot2": 0.0}
@@ -102,6 +114,7 @@ def play_game(bot1_name, bot2_name, game_number, seed, depth=4, alpha_beta=True)
         "moves": move_counts["bot1"] + move_counts["bot2"],
         "depth": depth,
         "alpha_beta": alpha_beta,
+        "iterations": iterations,
         "bot1_moves": move_counts["bot1"],
         "bot2_moves": move_counts["bot2"],
         "bot1_positions_searched": positions["bot1"],
@@ -115,18 +128,21 @@ def play_game(bot1_name, bot2_name, game_number, seed, depth=4, alpha_beta=True)
     }
 
 
-def run_matches(bot1_name, bot2_name, games, seed=0, depth=4, alpha_beta=True, output_path=None):
+def run_matches(bot1_name, bot2_name, games, seed=0, depth=4, alpha_beta=True,
+                iterations=1000, output_path=None):
     """Play `games` alternating-start matches and write per-game CSV results."""
     if games < 1:
         raise ValueError("games must be at least 1")
     if depth < 1:
         raise ValueError("depth must be at least 1")
+    if iterations < 1:
+        raise ValueError("iterations must be at least 1")
     if output_path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         output_path = os.path.join("results", f"matches_{timestamp}.csv")
 
     rows = [
-        play_game(bot1_name, bot2_name, game, seed, depth, alpha_beta)
+        play_game(bot1_name, bot2_name, game, seed, depth, alpha_beta, iterations)
         for game in range(1, games + 1)
     ]
 
@@ -142,11 +158,12 @@ def run_matches(bot1_name, bot2_name, games, seed=0, depth=4, alpha_beta=True, o
 
 def main():
     parser = argparse.ArgumentParser(description="Run Connect Four bot matches and save CSV metrics.")
-    parser.add_argument("--bot1", choices=("random", "greedy", "minimax"), default="minimax")
-    parser.add_argument("--bot2", choices=("random", "greedy", "minimax"), default="random")
+    parser.add_argument("--bot1", choices=BOT_NAMES, default="minimax")
+    parser.add_argument("--bot2", choices=BOT_NAMES, default="random")
     parser.add_argument("--games", type=int, default=100, help="number of games to play")
     parser.add_argument("--depth", type=int, default=4, help="minimax search depth")
     parser.add_argument("--no-pruning", action="store_true", help="disable minimax alpha-beta pruning")
+    parser.add_argument("--iterations", type=int, default=1000, help="MCTS iterations per move")
     parser.add_argument("--seed", type=int, default=0, help="base seed for repeatable bot moves")
     parser.add_argument("--output", help="CSV output path (default: results/matches_<timestamp>.csv)")
     args = parser.parse_args()
@@ -155,6 +172,8 @@ def main():
         parser.error("--games must be at least 1")
     if args.depth < 1:
         parser.error("--depth must be at least 1")
+    if args.iterations < 1:
+        parser.error("--iterations must be at least 1")
 
     rows, output_path = run_matches(
         args.bot1,
@@ -163,6 +182,7 @@ def main():
         seed=args.seed,
         depth=args.depth,
         alpha_beta=not args.no_pruning,
+        iterations=args.iterations,
         output_path=args.output,
     )
 

@@ -76,6 +76,22 @@ class TestRunMatches(unittest.TestCase):
             self.assertGreater(row["bot1_positions_searched"], 0)
             self.assertEqual(row["bot2_positions_searched"], 0)
 
+    def test_runs_mcts_and_records_iterations(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = os.path.join(temp_dir, "mcts.csv")
+            rows, _ = run_matches(
+                "mcts", "random", games=4, iterations=200, output_path=output_path
+            )
+
+        for row in rows:
+            self.assertEqual(row["iterations"], 200)
+            # MCTS should beat a random bot from either seat.
+            self.assertEqual(row["bot1_result"], "win")
+
+    def test_rejects_non_positive_iterations(self):
+        with self.assertRaises(ValueError):
+            run_matches("mcts", "random", games=1, iterations=0)
+
 
 if __name__ == "__main__":
     unittest.main()
