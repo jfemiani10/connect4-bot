@@ -26,9 +26,13 @@ Run a match series from the repository root and save per-game metrics to CSV:
 ```bash
 python3 -m experiments.run_matches --bot1 minimax --bot2 greedy --games 100 --depth 4 --seed 42
 python3 -m experiments.run_matches --bot1 minimax --bot2 random --games 100 --depth 6 --no-pruning --output results/minimax_no_pruning.csv
+python3 -m experiments.run_matches --bot1 mcts --bot2 greedy --games 100 --iterations 1000 --seed 42
+python3 -m experiments.run_matches --bot1 minimax --bot2 mcts --games 100 --depth 4 --iterations 1000 --seed 42
 ```
 
-The bots alternate who goes first. CSV files include each bot's outcome, move count, total positions searched, and average decision time per move, along with seed and minimax settings.
+`--depth` and `--no-pruning` set up minimax; `--iterations` sets up MCTS.
+
+The bots alternate who goes first. CSV files include each bot's outcome, move count, total positions searched, and average decision time per move, along with the seed, minimax settings, and MCTS iterations.
 
 Generate plots from the match CSV files in `results/`:
 
@@ -36,7 +40,13 @@ Generate plots from the match CSV files in `results/`:
 python3 -m experiments.plots
 ```
 
-The script writes win rate vs. depth, positions searched per move vs. depth, and seconds per move vs. depth to `figures/`. To produce depth curves, run matches at multiple minimax depths; run with and without `--no-pruning` to compare search and timing metrics.
+The script writes to `figures/`:
+
+- From minimax vs. random/greedy matches: win rate, positions searched per move, and seconds per move vs. depth. Run several depths, with and without `--no-pruning`, to get full curves.
+- From MCTS vs. random/greedy matches: win rate and seconds per move vs. iterations. Run several iteration counts to get full curves.
+- From minimax vs. MCTS matches: `head_to_head.csv`, with each side's win rate, the draw rate, and each side's seconds per move for every depth/iterations pairing.
+
+Each part is skipped if `results/` has no matches of that kind yet.
 
 ## Usage
 
@@ -66,8 +76,9 @@ The board prints as dots for empty cells and colored `O`s for pieces (red for pl
 - `src/baselines.py`: baseline bots (`RandomBot` and `GreedyBot`).
 - `src/minimax.py`: the minimax bot with alpha-beta pruning (`MinimaxBot`).
 - `src/mcts.py`: the Monte Carlo Tree Search bot (`MCTSBot`).
-- `tests/`: unit tests for the board, minimax, and MCTS.
-- `experiments/`: match and plotting scripts, which write to `results/` and `figures/` (to do).
+- `tests/`: unit tests for the board, bots, match runner, and plots.
+- `experiments/run_matches.py`: plays bot-vs-bot matches and saves per-game CSVs to `results/`.
+- `experiments/plots.py`: turns the CSVs into figures and the head-to-head table in `figures/`.
 - `docs/paper_draft.pdf`: mock draft of the final paper, with a checklist of what is left. Rebuild from `paper_draft.tex` with `pdflatex paper_draft.tex` in `docs/`.
 - `TODO.md`: the task split between teammates.
 

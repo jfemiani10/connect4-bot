@@ -32,6 +32,7 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
   - positions searched vs. depth (with vs. without alpha-beta)
   - time per move vs. depth
   - a table of minimax vs. MCTS head-to-head win rates
+- [ ] Run the full set of matchups above (100 games each, seed 42), then `python3 -m experiments.plots`. The files in `results/` now are small trial runs: depths 1–4 only, 10 games for most, and three identical copies of the depth-4 vs. greedy run. Delete them before the real run so they don't skew the averages.
 - [ ] Paper: **Experimental Setup** and **Experimental Results**.
 
 ## Both: wrap up (~1 hr each)
