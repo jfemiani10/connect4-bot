@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from experiments.plots import (
+    aggregate_baseline_summary,
     aggregate_head_to_head,
     aggregate_match_rows,
     aggregate_mcts_rows,
@@ -99,6 +100,36 @@ class TestMCTSPlots(unittest.TestCase):
         self.assertAlmostEqual(
             entry["minimax_win_rate"] + entry["draw_rate"] + entry["mcts_win_rate"], 1.0
         )
+
+
+class TestBaselineSummary(unittest.TestCase):
+    def test_summarizes_every_agent_against_baselines(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            input_dir = os.path.join(temp_dir, "results")
+            run_matches("minimax", "greedy", games=4, depth=2,
+                        output_path=os.path.join(input_dir, "a.csv"))
+            run_matches("random", "mcts", games=2, iterations=50,
+                        output_path=os.path.join(input_dir, "b.csv"))
+            run_matches("greedy", "random", games=2,
+                        output_path=os.path.join(input_dir, "c.csv"))
+            run_matches("minimax", "mcts", games=2, depth=1, iterations=20,
+                        output_path=os.path.join(input_dir, "d.csv"))
+            summary = aggregate_baseline_summary(read_match_rows(input_dir))
+
+        by_agent = {entry["agent"]: entry for entry in summary}
+        # The head-to-head match (d.csv) is not included.
+        self.assertEqual(len(summary), 3)
+        self.assertEqual(by_agent["minimax"]["depth"], 2)
+        self.assertEqual(by_agent["minimax"]["games"], 4)
+        self.assertGreater(by_agent["minimax"]["mean_positions_per_move"], 0)
+        # MCTS was bot2 in b.csv, so it must still be found as the agent.
+        self.assertEqual(by_agent["mcts"]["opponent"], "random")
+        self.assertEqual(by_agent["mcts"]["iterations"], 50)
+        self.assertEqual(by_agent["greedy"]["opponent"], "random")
+        for entry in summary:
+            self.assertAlmostEqual(
+                entry["win_rate"] + entry["draw_rate"] + entry["loss_rate"], 1.0
+            )
 
 
 if __name__ == "__main__":

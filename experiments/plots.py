@@ -8,6 +8,8 @@ Writes to figures/:
     move vs. depth
   - MCTS vs. the baselines: win rate and seconds per move vs. iterations
   - minimax vs. MCTS: head_to_head.csv, one row per depth/iterations pairing
+  - every agent vs. each baseline: baselines_summary.csv, with win, draw,
+    and loss rates (including greedy vs. random)
 Each part is skipped if results/ has no matches of that kind yet.
 """
 
@@ -384,6 +386,100 @@ def write_head_to_head(summary, output_dir):
     return output_path
 
 
+SUMMARY_FIELDS = [
+    "agent",
+    "depth",
+    "alpha_beta",
+    "iterations",
+    "opponent",
+    "games",
+    "win_rate",
+    "draw_rate",
+    "loss_rate",
+    "mean_seconds_per_move",
+    "mean_positions_per_move",
+]
+
+# Used to decide which side of a match is "the agent" being tested and which
+# is the opponent: the stronger-ranked side is the agent. Minimax vs. MCTS
+# (equal rank) is left to the head-to-head table instead.
+_STRENGTH_RANK = {"random": 0, "greedy": 1, "minimax": 2, "mcts": 2}
+
+
+def aggregate_baseline_summary(rows):
+    """Win/draw/loss rates of every agent setting against each baseline (Table I).
+
+    Covers minimax (per depth, with and without pruning), MCTS (per
+    iteration count), and greedy vs. random. Returns a list of dicts with
+    SUMMARY_FIELDS, sorted by agent and setting. Settings that don't apply
+    to an agent (e.g. depth for MCTS) are left blank.
+    """
+    totals = defaultdict(lambda: {
+        "games": 0, "win": 0, "draw": 0, "loss": 0,
+        "moves": 0, "seconds": 0.0, "positions": 0,
+    })
+
+    for row in rows:
+        rank1, rank2 = _STRENGTH_RANK[row["bot1"]], _STRENGTH_RANK[row["bot2"]]
+        if rank1 == rank2:
+            continue  # same strength: not an agent-vs-baseline match
+        slot = "bot1" if rank1 > rank2 else "bot2"
+        agent, opponent = row[slot], row[_other(slot)]
+
+        # Only record the settings that apply to this agent.
+        depth = alpha_beta = iterations = ""
+        if agent == "minimax":
+            depth = int(row["depth"])
+            alpha_beta = _parse_bool(row["alpha_beta"], "alpha_beta", row.get("game", "?"))
+        elif agent == "mcts":
+            iterations = int(row["iterations"])
+
+        aggregate = totals[(agent, depth, alpha_beta, iterations, opponent)]
+        moves = int(row[f"{slot}_moves"])
+        aggregate["games"] += 1
+        aggregate[row[f"{slot}_result"]] += 1
+        aggregate["moves"] += moves
+        aggregate["seconds"] += float(row[f"{slot}_seconds_per_move"]) * moves
+        aggregate["positions"] += int(row[f"{slot}_positions_searched"])
+
+    summary = []
+    for key, values in totals.items():
+        agent, depth, alpha_beta, iterations, opponent = key
+        games, moves = values["games"], max(values["moves"], 1)
+        summary.append({
+            "agent": agent,
+            "depth": depth,
+            "alpha_beta": alpha_beta,
+            "iterations": iterations,
+            "opponent": opponent,
+            "games": games,
+            "win_rate": values["win"] / games,
+            "draw_rate": values["draw"] / games,
+            "loss_rate": values["loss"] / games,
+            "mean_seconds_per_move": values["seconds"] / moves,
+            # Only minimax counts positions searched.
+            "mean_positions_per_move": values["positions"] / moves if agent == "minimax" else "",
+        })
+
+    # Sort by agent, then setting, with pruned minimax before unpruned.
+    summary.sort(key=lambda entry: (
+        entry["agent"], entry["depth"] or 0, entry["alpha_beta"] is False,
+        entry["iterations"] or 0, entry["opponent"]))
+    return summary
+
+
+def write_baseline_summary(summary, output_dir):
+    """Save the agent-vs-baseline summary as a CSV table (Table I in the paper)."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "baselines_summary.csv"
+    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=SUMMARY_FIELDS)
+        writer.writeheader()
+        writer.writerows(summary)
+    return output_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Plot minimax results from CSV files written by experiments.run_matches."
@@ -403,6 +499,10 @@ def main():
         mcts_aggregates = aggregate_mcts_rows(rows)
         if mcts_aggregates:
             output_paths += make_mcts_plots(mcts_aggregates, args.output_dir)
+
+        baseline_summary = aggregate_baseline_summary(rows)
+        if baseline_summary:
+            output_paths.append(write_baseline_summary(baseline_summary, args.output_dir))
 
         head_to_head = aggregate_head_to_head(rows)
         if head_to_head:
