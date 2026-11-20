@@ -89,7 +89,7 @@ The board prints as dots for empty cells and colored `O`s for pieces (red for pl
 - `experiments/run_all.py`: runs every experiment in the paper, then makes the figures.
 - `experiments/run_matches.py`: plays bot-vs-bot matches and saves per-game CSVs to `results/`.
 - `experiments/plots.py`: turns the CSVs into figures and the head-to-head table in `figures/`.
-- `docs/paper_draft.pdf`: mock draft of the final paper, with a checklist of what is left. Rebuild from `paper_draft.tex` with `pdflatex paper_draft.tex` in `docs/`.
+- `docs/paper.pdf`: the final paper. Rebuild from `paper.tex` by running `pdflatex paper.tex` twice in `docs/`. Every number in it comes from `results/` and `figures/`.
 - `TODO.md`: the task split between teammates.
 
 **Board convention:** `grid` is 6 rows × 7 columns, with row 0 at the top. Cells hold `0` = empty, `1` = player 1, `2` = player 2.

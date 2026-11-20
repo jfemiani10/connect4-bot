@@ -17,7 +17,7 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
 - [x] Add alpha-beta pruning as an on/off flag, plus a counter for positions searched.
 - [x] `--bot` option in `play.py` to choose the opponent.
 - [x] `src/mcts.py`: Monte Carlo Tree Search bot (UCB1 selection, random playouts), with tests.
-- [ ] Paper: **AI Model and Implementation**, describing both minimax and MCTS and which AI tools were used and how.
+- [x] Paper: **AI Model and Implementation**, describing both minimax and MCTS and which AI tools were used and how.
 
 ## Ryan: baselines and experiments (~3–4 hrs)
 - [x] `src/baselines.py`: the greedy bot (the random bot is already there; follow the same interface). Then add a `"greedy"` line to `BOTS` in `play.py`.
@@ -33,10 +33,13 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
   - time per move vs. depth
   - a table of minimax vs. MCTS head-to-head win rates
 - [x] Run the full set of matchups above: `python3 -m experiments.run_all --workers 6` (100 games each, seed 42; no-pruning runs 20 games). Results are in `results/`, machine specs in `results/environment.txt`, figures and `head_to_head.csv` in `figures/`.
-- [ ] Paper: **Experimental Setup** and **Experimental Results**.
+- [x] Paper: **Experimental Setup** and **Experimental Results**.
 
 ## Both: wrap up (~1 hr each)
-- [ ] Jonah: Abstract and Introduction. Ryan: Conclusion and limitations.
-- [ ] References: minimax/alpha-beta and MCTS sources (see the list in `docs/paper_draft.pdf`) and docs for any libraries used.
-- [ ] Read each other's sections, then check that every figure is numbered, captioned, and discussed in the text.
+- [x] Abstract, Introduction, Conclusion, and limitations (full draft in `docs/paper.pdf`).
+- [ ] References: the 7 sources are listed in `docs/paper.pdf`. The rubric says to cite only sources you actually consulted, so look at each one (at least the abstract and the parts we cite), and remove any you can't stand behind.
+- [ ] Both: read the whole paper and edit anything that doesn't sound like you or that you can't explain. You'll be graded on understanding it.
+- [ ] Fill in the red placeholders in `docs/paper.tex`: Ryan's surname, departments, university, city, and school emails.
+- [ ] Ryan: in the "Use of generative AI" paragraph, say whether you used AI tools for the greedy bot, match runner, and plots. Then both confirm the paragraph follows the course's AI rules.
+- [ ] Copy the paper into `project-template-letter.docx` using the template's styles (remove the unused author blocks and the template's sample references), if the course requires the Word template.
 - [x] Final check: a fresh clone plus `pip install -r requirements.txt` reproduces all figures. (The committed results came from a fresh clone; rerunning gives identical game outcomes, only timings vary.) Rerun `run_all` if any bot code changes before submission.
