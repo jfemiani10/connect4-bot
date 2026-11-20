@@ -32,11 +32,11 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
   - positions searched vs. depth (with vs. without alpha-beta)
   - time per move vs. depth
   - a table of minimax vs. MCTS head-to-head win rates
-- [ ] Run the full set of matchups above (100 games each, seed 42), then `python3 -m experiments.plots`. The files in `results/` now are small trial runs: depths 1–4 only, 10 games for most, and three identical copies of the depth-4 vs. greedy run. Delete them before the real run so they don't skew the averages.
+- [x] Run the full set of matchups above: `python3 -m experiments.run_all --workers 6` (100 games each, seed 42; no-pruning runs 20 games). Results are in `results/`, machine specs in `results/environment.txt`, figures and `head_to_head.csv` in `figures/`.
 - [ ] Paper: **Experimental Setup** and **Experimental Results**.
 
 ## Both: wrap up (~1 hr each)
 - [ ] Jonah: Abstract and Introduction. Ryan: Conclusion and limitations.
 - [ ] References: minimax/alpha-beta and MCTS sources (see the list in `docs/paper_draft.pdf`) and docs for any libraries used.
 - [ ] Read each other's sections, then check that every figure is numbered, captioned, and discussed in the text.
-- [ ] Final check: a fresh clone plus `pip install -r requirements.txt` reproduces all figures.
+- [x] Final check: a fresh clone plus `pip install -r requirements.txt` reproduces all figures. (The committed results came from a fresh clone; rerunning gives identical game outcomes, only timings vary.) Rerun `run_all` if any bot code changes before submission.
