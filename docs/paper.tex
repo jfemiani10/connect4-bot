@@ -35,11 +35,11 @@
 \title{\Large Search versus Simulation: Comparing Minimax and\\ Monte Carlo Tree Search in Connect Four}
 \author{
   \begin{tabular}{c@{\hspace{3em}}c}
-  Jonah Femiani & Ryan \fillin{surname} \\
-  \fillin{Department} & \fillin{Department} \\
-  \fillin{University} & \fillin{University} \\
-  \fillin{City, Country} & \fillin{City, Country} \\
-  \fillin{school email} & \fillin{school email}
+  Jonah Femiani & Ryan Hogan \\
+  College of Engineering and Computing & College of Engineering and Computing \\
+  Miami University & Miami University \\
+  Oxford, Ohio & Oxford, Ohio \\
+  femianjy@miamioh.edu & hoganrj@miamioh.edu \\
   \end{tabular}}
 \date{}
 
@@ -47,18 +47,18 @@
 \maketitle
 
 \noindent\textbf{\textit{Abstract}---Board games give a clear, measurable setting for
-comparing how artificial intelligence methods plan ahead. We built two agents for Connect
-Four. The first uses depth-limited minimax search with a hand-written evaluation function and
-alpha-beta pruning. The second uses Monte Carlo tree search, which needs no evaluation
-function and instead judges moves by playing many random games. We tested both against a
+comparing how artificial intelligence methods plan ahead. To demonstrate, we built 
+multiple agents for Connect Four. The first uses depth-limited minimax search with a hand-written 
+evaluation function and alpha-beta pruning. The second uses Monte Carlo tree search, which needs 
+no evaluation function and instead judges moves by playing many random games. We tested both against a
 random agent and a greedy agent, and against each other, over 3440 games while varying how
-much each agent searches. Both agents beat the baselines almost every time once given
+deep each agent searches. Both agents beat the baselines almost every time once given
 modest search: minimax from a depth of two moves and Monte Carlo tree search from 300
-iterations. Alpha-beta pruning reduced the positions minimax examined at depth six by 97.5
+iterations. We also analyzed how Alpha-beta pruning reduced the positions minimax examined (at depth six) by 97.5
 percent, making it 59 times faster without changing any move. Head to head, minimax was
-stronger when both agents had the same time per move, winning 69 percent of games at about
-40 milliseconds per move, while Monte Carlo tree search caught up only when given about five
-times as much time.}
+stronger when both agents had the same time per move, winning 69 percent of games averaging
+40 milliseconds per move, while Monte Carlo tree search caught up only when given almost five
+times as much processing time.}
 
 \medskip
 \noindent\textbf{\textit{Keywords}---game playing, adversarial search, minimax, alpha-beta
@@ -67,19 +67,20 @@ pruning, Monte Carlo tree search, Connect Four}
 \section{Introduction}
 
 Connect Four is a two-player game played on a board seven columns wide and six rows tall.
-Players take turns dropping pieces into a column, and the first to line up four pieces
-horizontally, vertically, or diagonally wins. The game is small enough to program in an
-afternoon but has far too many positions to solve by brute force during play, which makes it
-a standard setting for studying adversarial search~[1]. With perfect play, the first player
-can always force a win~[2], but finding those moves in real time takes search.
+Players will take turns dropping pieces into a column, and the first to line up four pieces
+horizontally, vertically, or diagonally wins. The game is simple enough to program in an
+afternoon but has far too many positions and gamestates to be able to solve by brute force, this makes it
+a perfect setting for studying adversarial search~[1]. With optimal play, the first player
+can always force a win~[2], but finding those moves in real time will force us to implement some smarter searches.
 
-Two classic approaches to this kind of search work very differently. \emph{Minimax}~[1]
+The two classic approaches to this kind of search operate very differently. \emph{Minimax}~[1]
 looks a fixed number of moves ahead and relies on a hand-written evaluation function to
-score positions it cannot see to the end; \emph{alpha-beta pruning}~[3] makes it faster
-without changing its decisions. \emph{Monte Carlo tree search} (MCTS)~[4],~[5] needs no
+score positions it cannot see to the end, we also implement \emph{alpha-beta pruning}~[3]. This makes it faster
+without changing its decisions by avoiding unnecessary searches. \emph{Monte Carlo tree search} (MCTS)~[4],~[5] needs no
 evaluation function: it estimates how good each move is by playing many random games to the
-end, focusing its effort on the moves that look most promising. Comparing them shows the
-trade-off between relying on human game knowledge and relying on raw simulation.
+end, focusing its effort on the moves that offer the best outcomes. We will go more in depth as
+to the specifics of how they work later. Comparing them shows the trade-off between relying on 
+human game knowledge and relying on raw simulation.
 
 Our goal was to compare these two methods on the same game. Specifically, we asked:
 \begin{enumerate}[leftmargin=*,nosep]
@@ -89,9 +90,9 @@ Our goal was to compare these two methods on the same game. Specifically, we ask
   \item How much does alpha-beta pruning reduce the work minimax does?
 \end{enumerate}
 
-We implemented the game, two baseline agents, and both AI agents in Python and played 3,440
-games with fixed random seeds. Both agents beat the baselines almost every time once given a
-small amount of search. Alpha-beta pruning cut the positions searched at depth 6 by 97.5\%.
+First we implemented a basic rendition of the game, then two baseline agents, and both AI agents in Python. We then ran 3,440
+simulated games with fixed random seeds. Both agents beat the baseline agents almost every time once search depth surpassed two moves. 
+We also noticed Alpha-beta pruning cut the positions searched at depth 6 by 97.5\%.
 Head to head, minimax won more often when both agents had the same time per move, but MCTS
 improved steadily with more iterations and matched or beat minimax when given about five
 times more time.
@@ -100,18 +101,17 @@ times more time.
 
 \subsection{Data and Preprocessing}
 
-This project does not use an external dataset. Instead, the data are the games played
-between agents, generated by our match-running scripts. We ran 44 matchups: 32 of 100 games
-each and 12 of 20 games each (explained in Section~II-C), for 3,440 games in total. Within
+This project does not use an external dataset. Instead, data was generated through the games played
+between agents. We ran 44 matchups: 32 of 100 games each and 12 of 20 games each (explained in Section~II-C), for 3,440 games in total. Within
 each matchup, the two agents alternate who moves first, because the first player has an
 advantage in Connect Four~[2]. Every game uses its own fixed random seed, derived from a base
-seed of 42, so any game can be replayed exactly; rerunning matchups produced identical game
-outcomes.
+seed of 42, so any game can be replayed exactly (rerunning matchups produced identical game
+outcomes).
 
 For each game we record the winner (or a draw), the number of moves, and for each agent its
-settings (search depth or iterations), the time it spent per move, and, for minimax, the
+settings (search depth or iterations), the time it spent calculating per move, and for minimax we also tracked the
 number of positions it searched. There is no training step, so no train and test split is
-needed and there is no risk of data leakage. The minimax evaluation function and the MCTS
+needed and there is no risk of possible data leakage. The minimax evaluation function and the MCTS
 settings were chosen by hand before the experiments and were not tuned on the games we
 report.
 
@@ -131,7 +131,7 @@ move with the lowest. Won and lost positions get very large positive or negative
 adjusted by the remaining depth so that faster wins and slower losses are preferred.
 Positions at the depth limit are scored by an evaluation function that looks at all 69
 groups of four cells in a line on the board. Each group holding three of the agent's pieces
-and one empty cell adds 5 points, and each with two pieces and two empty cells adds 2;
+and one empty cell adds 5 points, and each with two pieces and two empty cells adds 2,
 the same patterns for the opponent subtract the same amounts. Groups containing both
 players' pieces can never become a win and score nothing. Finally, each piece in the center
 column adds 3 points for its owner, because the center column is part of the most possible
@@ -149,7 +149,7 @@ branches.
 steps. \emph{Selection} walks down the tree from the current position, at each step choosing
 the move with the highest Upper Confidence Bound (UCB1) score~[4]. UCB1 adds a move's
 win rate so far to a bonus that is large for moves tried only a few times, balancing
-promising moves against unexplored ones; we use the standard exploration constant of
+promising moves against unexplored ones, we use the standard exploration constant of
 $\sqrt{2}$. \emph{Expansion} adds one untried move to the tree. \emph{Simulation} plays
 random moves from that position until the game ends. \emph{Backpropagation} updates the
 visit and win counts of every node on the path back to the root, counting a draw as half a
@@ -163,12 +163,10 @@ available at \url{https://github.com/jfemiani10/connect4-bot}.
 
 \textit{Use of generative AI.} We used Claude Code, an AI coding assistant from Anthropic,
 throughout the project. It wrote the game board, terminal display, random, minimax, and
-MCTS agents, the unit tests, and the script that runs all experiments; it also found and
+MCTS agents, the unit tests, and the script that runs all experiments, it also found and
 fixed an error in our match-running script that credited half of all games to the wrong
 agent, and it drafted the text of this paper. Ryan wrote the greedy agent, the
-match-running script, and the plotting script. \fillin{Ryan: state whether you used AI tools
-for your code, and which.} We checked the code with unit tests and reviewed the generated
-text. \fillin{Confirm or edit this statement to match the course rules.}
+match-running script, and the plotting script.
 
 \subsection{Experimental Setup}
 
@@ -183,23 +181,23 @@ We ran four experiments, all with a base seed of 42:
   \item \emph{Cost of pruning.} Minimax without pruning, at depths 1 through 6, played 20
         games against each baseline. Because pruning never changes minimax's moves, these
         games are move-for-move identical to the first 20 games of the pruned runs, which we
-        confirmed; they serve only to measure search cost, so 20 games were enough.
+        confirmed, they serve only to measure search cost, so 20 games were enough.
 \end{enumerate}
 As a check on the baselines, the greedy agent also played 100 games against the random
 agent.
 
 \textit{Metrics.} \emph{Win rate} is the fraction of games won, with draws and losses
-reported separately; it measures playing strength. With 100 games, a win rate near 50\% has
+reported separately, it measures playing strength. With 100 games, a win rate near 50\% has
 a 95\% confidence interval of about $\pm$10 percentage points, so smaller differences should
 not be read as meaningful. \emph{Positions searched per move} counts the board positions
 minimax examines before choosing a move; it measures computational effort and does not
 depend on hardware. \emph{Time per move}, in milliseconds (ms), is the average time an agent
-takes to choose a move; it is the only cost measure that applies to both methods, but it
+takes to choose a move, it is the only cost measure that applies to both methods, but it
 depends on hardware.
 
 \textit{Hardware.} All experiments ran on an Intel Core Ultra 7 155H processor (22 logical
 cores) under Windows Subsystem for Linux 2 with Python 3.12.3. To save time, six matchups
-ran in parallel, each in its own process; the full run took 11.5 minutes. Running in
+ran in parallel, each in its own process, the full run took 11.5 minutes. Running in
 parallel does not affect any game outcome, but it adds some noise to the timings, which
 should be read as approximate.
 
@@ -326,7 +324,7 @@ Minimax depth 2 & 91 / 0 / 9 & 50 / 0 / 50 & 39 / 0 / 61 \\
 Minimax depth 4 & 95 / 1 / 4 & 55 / 0 / 45 & 42 / 0 / 58 \\
 Minimax depth 6 & 95 / 0 / 5 & 69 / 1 / 30 & 58 / 0 / 42 \\
 \midrule
-\multicolumn{4}{l}{Time per move: minimax depth 2, 4, 6: 0.4, 4.0, 37~ms;} \\
+\multicolumn{4}{l}{Time per move: minimax depth 2, 4, 6: 0.4, 4.0, 37~ms.} \\
 \multicolumn{4}{l}{MCTS 100, 1,000, 5,000 iterations: 4.6, 39, 190~ms.} \\
 \bottomrule
 \end{tabular}
@@ -349,7 +347,7 @@ depth 6 and MCTS with 1,000 iterations both take about 40~ms per move, and minim
 MCTS improved steadily with more iterations. Against minimax at depth 2, its win rate rose
 from 9\% at 100 iterations to 50\% at 1,000 and 61\% at 5,000. With 5,000 iterations, MCTS
 also won 58\% of games against minimax at depth 4, and minimax at depth 6 won only 58\% of
-games against it; both results are within the margin of error of an even result. MCTS's time per move grows in proportion to
+games against it, both results are within the margin of error of an even result. MCTS's time per move grows in proportion to
 its iterations (Fig.~\ref{fig:mctstime}), about 0.05~ms per iteration, so this extra
 strength cost about five times more time per move than minimax at depth 6.
 
