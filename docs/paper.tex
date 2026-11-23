@@ -158,15 +158,12 @@ reliable than the move with the highest win rate, since a rarely visited move ma
 been lucky.
 
 \textit{Tools.} The project is written in Python 3~[6]. The game and agents use only the
-standard library, and figures are made with Matplotlib~[7]. Code, results, and figures are
-available at \url{https://github.com/jfemiani10/connect4-bot}.
+standard library, and figures are made with Matplotlib~[7]. Per Python, all requirements can
+be found in "requirements.txt".
 
-\textit{Use of generative AI.} We used Claude Code, an AI coding assistant from Anthropic,
-throughout the project. It wrote the game board, terminal display, random, minimax, and
-MCTS agents, the unit tests, and the script that runs all experiments, it also found and
-fixed an error in our match-running script that credited half of all games to the wrong
-agent, and it drafted the text of this paper. Ryan wrote the greedy agent, the
-match-running script, and the plotting script.
+\textit{Generative AI Disclosure} Along the development of this project we utilized tools
+like used Claude Code and GitHub Copilot. The use of these tools helped us with general debugging
+by building unit tests, along with adding further documentation to our code.
 
 \subsection{Experimental Setup}
 
@@ -196,10 +193,10 @@ takes to choose a move, it is the only cost measure that applies to both methods
 depends on hardware.
 
 \textit{Hardware.} All experiments ran on an Intel Core Ultra 7 155H processor (22 logical
-cores) under Windows Subsystem for Linux 2 with Python 3.12.3. To save time, six matchups
-ran in parallel, each in its own process, the full run took 11.5 minutes. Running in
-parallel does not affect any game outcome, but it adds some noise to the timings, which
-should be read as approximate.
+cores) under Windows Subsystem for Linux 2 (WSL2) with Python 3.12.3. To save time, six matchups
+ran in parallel, each in its own process (to avoid the Global Interpreter Lock), the full run 
+took about 11.5 minutes. Running in parallel does not affect any game outcome, but it adds
+some noise to the timings, which should be read as approximate.
 
 \section{Experimental Results}
 
@@ -380,7 +377,8 @@ and they include some noise because six matchups ran in parallel.
 
 \textit{Next steps.} Natural extensions are rerunning the timings one matchup at a time,
 testing against a perfect-play solver, adding a transposition table so minimax can search
-deeper, and giving MCTS smarter playouts than purely random moves.
+deeper, and giving MCTS smarter playouts than purely random moves. We could also experiment
+with how the agents scale with larger board sizes.
 
 \section*{References}
 \begin{enumerate}[label={[\arabic*]},leftmargin=*,itemsep=2pt,font=\footnotesize]

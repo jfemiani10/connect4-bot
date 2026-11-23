@@ -7,13 +7,12 @@ the opponent could make, then every reply to that, and so on, up to `depth`
 moves ahead. This forms a "game tree". It then scores the positions at the
 bottom of the tree and works back up:
 
-  - On the bot's own turns it assumes it will pick the HIGHEST-scoring move
-    (the "max" player).
-  - On the opponent's turns it assumes the opponent picks the move that is
-    LOWEST-scoring for the bot (the "min" player), i.e. the opponent plays well.
+On the bot's own turns it assumes it will pick the HIGHEST-scoring move
+(the "max" player).
+On the opponent's turns it assumes the opponent picks the move that is
+LOWEST-scoring for the bot (the "min" player), i.e. the opponent plays well.
 
 The move at the top with the best guaranteed score is the one it plays.
-
 Positions at the bottom of the tree are usually not finished games, so we
 guess how good they are with a heuristic, `evaluate()`, below.
 
@@ -175,7 +174,7 @@ class MinimaxBot:
         """
         self.positions_searched += 1
 
-        # --- Stop searching if the game is over or we've hit the depth limit.
+        #Stop searching if the game is over or we've hit the depth limit.
         winner = board.winner()
         if winner == me:
             # Adding `depth` makes faster wins score higher: a win found with
@@ -191,7 +190,7 @@ class MinimaxBot:
         if depth == 0:
             return evaluate(board, me)
 
-        # --- Otherwise, try every move and pass the result back up.
+        # Otherwise, try every move and pass the result back up.
         if maximizing:
             # Our turn: we pick the move with the highest score.
             best = -math.inf

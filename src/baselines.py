@@ -1,8 +1,7 @@
 """Baseline bots that the minimax bot is compared against.
-
 Every bot in this project follows the same simple interface:
-    bot.name                -> a short label used in printouts and results files
-    bot.choose_move(board)  -> returns the column (0-6) the bot wants to play
+bot.name = a short label used in printouts and results files
+bot.choose_move(board) = returns the column (0-6) the bot wants to play
 
 choose_move must NOT change the board it's given. If a bot wants to try
 moves out, it should work on board.copy() instead.
@@ -26,6 +25,7 @@ class RandomBot:
         # repeated and give identical results.
         self.rng = random.Random(seed)
 
+    # Literally just returns a random move
     def choose_move(self, board):
         return self.rng.choice(board.valid_moves())
 
@@ -38,6 +38,7 @@ class GreedyBot:
     def __init__(self, seed=None):
         self.rng = random.Random(seed)
 
+    # Prioritize Winning moves, then blocking moves, otherwise just move random
     def choose_move(self, board):
         valid_moves = board.valid_moves()
         me = board.current_player

@@ -1,5 +1,4 @@
 """Print a Connect Four board in the terminal.
-
 The grid is a list of 6 rows of 7 ints, with row 0 at the top:
 0 = empty, 1 = player 1 (red), 2 = player 2 (yellow).
 """

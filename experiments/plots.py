@@ -461,7 +461,7 @@ def aggregate_baseline_summary(rows):
             "mean_positions_per_move": values["positions"] / moves if agent == "minimax" else "",
         })
 
-    # Sort by agent, then setting, with pruned minimax before unpruned.
+    # Sort by agent, then setting, pruned minimax before unpruned.
     summary.sort(key=lambda entry: (
         entry["agent"], entry["depth"] or 0, entry["alpha_beta"] is False,
         entry["iterations"] or 0, entry["opponent"]))

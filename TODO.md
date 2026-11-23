@@ -4,7 +4,7 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
 
 ## Both (do first, ~30 min)
 - [x] Create the GitHub repo.
-- [ ] Add Ryan as a collaborator.
+- [x] Add Ryan as a collaborator.
 - [x] `Board` interface: `valid_moves()`, `play(col)`, `winner()`, `game_over()`, `copy()`, `grid`, `current_player` (see `src/board.py`).
 - [x] Bot interface: `name` and `choose_move(board)` (see `src/baselines.py`).
 - [x] Terminal board display (`src/display.py`).
@@ -39,7 +39,7 @@ Target: about 3–5 hours each. See `README.md` for the project description, boa
 - [x] Abstract, Introduction, Conclusion, and limitations (full draft in `docs/paper.pdf`).
 - [ ] References: the 7 sources are listed in `docs/paper.pdf`. The rubric says to cite only sources you actually consulted, so look at each one (at least the abstract and the parts we cite), and remove any you can't stand behind.
 - [ ] Both: read the whole paper and edit anything that doesn't sound like you or that you can't explain. You'll be graded on understanding it.
-- [ ] Fill in the red placeholders in `docs/paper.tex`: Ryan's surname, departments, university, city, and school emails.
+- [x] Fill in the red placeholders in `docs/paper.tex`: Ryan's surname, departments, university, city, and school emails.
 - [ ] Ryan: in the "Use of generative AI" paragraph, say whether you used AI tools for the greedy bot, match runner, and plots. Then both confirm the paragraph follows the course's AI rules.
 - [ ] Copy the paper into `project-template-letter.docx` using the template's styles (remove the unused author blocks and the template's sample references), if the course requires the Word template.
 - [x] Final check: a fresh clone plus `pip install -r requirements.txt` reproduces all figures. (The committed results came from a fresh clone; rerunning gives identical game outcomes, only timings vary.) Rerun `run_all` if any bot code changes before submission.

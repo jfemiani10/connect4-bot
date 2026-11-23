@@ -1,10 +1,9 @@
 """Connect Four board: game state and rules.
-
 The board is a 6 x 7 grid stored as a list of rows, with row 0 at the TOP.
 Each cell holds:
-    0 = empty
-    1 = player 1's piece (goes first, shown in red)
-    2 = player 2's piece (shown in yellow)
+0 = empty
+1 = player 1's piece (goes first, shown in red)
+2 = player 2's piece (shown in yellow)
 
 Pieces "fall" to the lowest empty row of the chosen column, just like the
 real game. A player wins by getting 4 of their pieces in a row horizontally,
@@ -13,15 +12,16 @@ vertically, or diagonally. If the board fills up with no winner, it's a draw.
 
 ROWS = 6
 COLS = 7
-CONNECT = 4  # how many in a row are needed to win
+CONNECT = 4 # how many in a row are needed to win, just good practice not to hardcode
+# (Allow for testing with larger boards in future?)
 
 # The four directions a line of 4 can run, as (row step, column step).
-# We only need four: each line is checked both forwards and backwards.
+# We only need four since each line is checked forwards and backwards.
 DIRECTIONS = [
-    (0, 1),   # horizontal  -
-    (1, 0),   # vertical    |
-    (1, 1),   # diagonal    \
-    (1, -1),  # diagonal    /
+    (0, 1), # horizontal
+    (1, 0), # vertical
+    (1, 1), # diagonal
+    (1, -1), # diagonal
 ]
 
 
@@ -30,9 +30,9 @@ class Board:
         # Start with every cell empty.
         self.grid = [[0] * COLS for _ in range(ROWS)]
         self.current_player = 1   # player 1 always moves first
-        self.last_move = None     # column of the most recent move (for display)
-        self._winner = None       # set to 1 or 2 once someone connects four
-        self._moves_played = 0    # used to detect a full board quickly
+        self.last_move = None # column of the most recent move (for display)
+        self._winner = None # set to 1 or 2 once someone connects four
+        self._moves_played = 0 # used to detect a full board quickly
 
     def valid_moves(self):
         """Return the list of columns that still have room for a piece.
